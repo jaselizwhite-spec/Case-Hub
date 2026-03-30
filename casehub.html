@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client Case Hub</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f0f2f5; color: #1a1f2e; }
+
+/* LOGIN */
+#login-page {
+  position: fixed; inset: 0; background: #1a1f2e;
+  display: flex; align-items: center; justify-content: center;
+}
+.login-box {
+  background: #252b3b; border-radius: 12px; padding: 40px;
+  width: 360px; text-align: center;
+}
+.login-box h1 { color: white; font-size: 22px; margin-bottom: 8px; }
+.login-box p { color: #888; font-size: 13px; margin-bottom: 28px; }
+.login-box input {
+  display: block; width: 100%; padding: 12px 14px;
+  margin-bottom: 12px; border-radius: 6px;
+  border: 1px solid #444; background: #1a1f2e;
+  color: white; font-size: 15px;
+}
+.login-box button {
+  width: 100%; padding: 13px; background: #0ea575;
+  color: white; border: none; border-radius: 6px;
+  font-size: 16px; font-weight: bold; cursor: pointer;
+}
+.login-box button:hover { background: #0c8f65; }
+#login-err { color: #f87171; font-size: 13px; margin-top: 10px; display: none; }
+
+/* APP */
+#app-page { display: none; }
+#topbar {
+  background: #1a1f2e; color: white; padding: 0 24px;
+  height: 56px; display: flex; align-items: center; gap: 16px;
+}
+#topbar h1 { font-size: 18px; flex: 1; }
+#topbar button {
+  background: #0ea575; color: white; border: none;
+  padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold;
+}
+#topbar .logout-btn {
+  background: transparent; border: 1px solid #444; color: #aaa; font-weight: normal;
+}
+
+#main { padding: 24px; }
+
+/* STATS */
+.stats { display: flex; gap: 14px; margin-bottom: 24px; flex-wrap: wrap; }
+.stat-box {
+  background: white; border-radius: 10px; padding: 16px 20px;
+  min-width: 140px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.stat-box .num { font-size: 28px; font-weight: bold; }
+.stat-box .lbl { font-size: 12px; color: #888; margin-top: 4px; }
+
+/* FILTERS */
+.toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.toolbar input, .toolbar select {
+  padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px;
+  font-size: 13px; background: white;
+}
+.toolbar input { width: 220px; }
+
+/* TABLE */
+.table-wrap { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+table { width: 100%; border-collapse: collapse; }
+th { background: #f8f9fb; padding: 10px 14px; text-align: left; font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid #eee; }
+td { padding: 12px 14px; font-size: 14px; border-bottom: 1px solid #f0f0f0; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #fafbfc; cursor: pointer; }
+
+/* BADGES */
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.b-new { background: #eff6ff; color: #3b82f6; }
+.b-progress { background: #fffbeb; color: #f59e0b; }
+.b-submitted { background: #f5f3ff; color: #8b5cf6; }
+.b-completed { background: #ecfdf5; color: #0ea575; }
+
+/* SCORE */
+.score { display: inline-block; width: 34px; height: 34px; border-radius: 50%; text-align: center; line-height: 34px; font-size: 13px; font-weight: bold; border: 2px solid; }
+.s-S { color: #7c3aed; border-color: #7c3aed; }
+.s-A { color: #0ea575; border-color: #0ea575; }
+.s-B { color: #3b82f6; border-color: #3b82f6; }
+.s-C { color: #f59e0b; border-color: #f59e0b; }
+.s-D { color: #f97316; border-color: #f97316; }
+.s-F { color: #ef4444; border-color: #ef4444; }
+
+/* MODAL */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: none; align-items: center; justify-content: center;
+  z-index: 999; padding: 20px;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: white; border-radius: 12px; width: 100%;
+  max-width: 620px; max-height: 90vh; overflow-y: auto;
+}
+.modal-head {
+  padding: 18px 22px; border-bottom: 1px solid #eee;
+  display: flex; justify-content: space-between; align-items: center;
+  position: sticky; top: 0; background: white;
+}
+.modal-head h2 { font-size: 17px; }
+.modal-head button { background: none; border: none; font-size: 22px; cursor: pointer; color: #999; }
+.modal-body { padding: 22px; }
+.modal-foot { padding: 14px 22px; border-top: 1px solid #eee; display: flex; gap: 10px; justify-content: flex-end; }
+
+/* FORM */
+.fg { margin-bottom: 14px; }
+.fg label { display: block; font-size: 12px; font-weight: bold; color: #666; text-transform: uppercase; margin-bottom: 5px; }
+.fg input, .fg select, .fg textarea {
+  width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;
+}
+.fg textarea { min-height: 70px; resize: vertical; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* BUTTONS */
+.btn { padding: 9px 16px; border-radius: 6px; border: none; font-size: 13px; font-weight: bold; cursor: pointer; }
+.btn-green { background: #0ea575; color: white; }
+.btn-green:hover { background: #0c8f65; }
+.btn-gray { background: #f0f0f0; color: #555; }
+.btn-gray:hover { background: #e0e0e0; }
+
+/* PROFILE */
+#profile-view { display: none; }
+.back-btn { background: none; border: none; color: #0ea575; font-size: 14px; cursor: pointer; margin-bottom: 16px; font-weight: bold; }
+.profile-grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
+@media(max-width:800px){ .profile-grid { grid-template-columns: 1fr; } }
+.card { background: white; border-radius: 10px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; }
+.card-head { background: #f8f9fb; padding: 12px 16px; border-bottom: 1px solid #eee; font-size: 12px; font-weight: bold; color: #666; text-transform: uppercase; }
+.card-body { padding: 16px; }
+.info-row { display: flex; padding: 7px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
+.info-row:last-child { border-bottom: none; }
+.info-lbl { color: #888; min-width: 110px; font-size: 12px; }
+.info-val { font-weight: 600; }
+
+/* WORKFLOW */
+.wf { display: flex; align-items: flex-start; gap: 0; overflow-x: auto; padding: 4px 0; }
+.wf-step { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 80px; cursor: pointer; }
+.wf-top { display: flex; align-items: center; width: 100%; }
+.wf-dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #ddd; background: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #aaa; flex-shrink: 0; }
+.wf-line { flex: 1; height: 2px; background: #ddd; }
+.wf-step:last-child .wf-line { display: none; }
+.wf-lbl { font-size: 10px; color: #aaa; text-align: center; }
+.wf-step.done .wf-dot { background: #0ea575; border-color: #0ea575; color: white; }
+.wf-step.done .wf-line { background: #0ea575; }
+.wf-step.done .wf-lbl { color: #0ea575; }
+.wf-step.active .wf-dot { border-color: #0ea575; color: #0ea575; font-size: 14px; font-weight: 900; }
+.wf-step.active .wf-lbl { color: #0ea575; font-weight: bold; }
+
+/* DOC SLOTS */
+.doc-slot { border: 1px solid #eee; border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+.doc-slot-head { padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #fafafa; }
+.doc-slot-head:hover { background: #f0f0f0; }
+.doc-name { font-size: 13px; font-weight: 600; }
+.doc-req { font-size: 10px; color: #ef4444; background: #fef2f2; padding: 1px 7px; border-radius: 10px; margin-left: 6px; }
+.doc-opt { font-size: 10px; color: #888; background: #f0f0f0; padding: 1px 7px; border-radius: 10px; margin-left: 6px; }
+.doc-status { font-size: 18px; }
+.doc-slot-body { padding: 12px 14px; display: none; border-top: 1px solid #eee; }
+.doc-slot-body.open { display: block; }
+.doc-file { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.doc-empty { text-align: center; padding: 10px; color: #aaa; font-size: 13px; }
+.upload-lbl { display: inline-block; background: #0ea575; color: white; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+
+/* PROGRESS BAR */
+.prog-wrap { margin-bottom: 14px; }
+.prog-top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+.prog-pct { font-weight: bold; color: #0ea575; }
+.prog-track { height: 8px; background: #eee; border-radius: 10px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 10px; transition: width .4s; }
+
+/* TIMELINE */
+.tl { padding-left: 22px; position: relative; }
+.tl::before { content:''; position: absolute; left: 7px; top: 6px; bottom: 6px; width: 2px; background: #eee; }
+.tl-item { position: relative; margin-bottom: 14px; }
+.tl-dot { position: absolute; left: -18px; top: 3px; width: 10px; height: 10px; border-radius: 50%; background: #ddd; }
+.tl-dot.upload { background: #3b82f6; }
+.tl-dot.status { background: #8b5cf6; }
+.tl-dot.attorney { background: #0ea575; }
+.tl-dot.note { background: #f59e0b; }
+.tl-text { font-size: 13px; }
+.tl-meta { font-size: 11px; color: #aaa; margin-top: 2px; font-family: monospace; }
+
+/* SCORE CARD */
+.score-card { background: white; border-radius: 10px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.score-top { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.score-ring-big { width: 60px; height: 60px; border-radius: 50%; border: 4px solid; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; flex-shrink: 0; }
+.score-grade { font-size: 20px; font-weight: 900; }
+.score-desc { font-size: 12px; color: #888; margin-top: 2px; }
+.score-factor { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid #f5f5f5; font-size: 12px; }
+.score-factor:last-child { border-bottom: none; }
+.sf-lbl { min-width: 100px; color: #555; }
+.sf-bar { flex: 1; height: 5px; background: #eee; border-radius: 5px; overflow: hidden; }
+.sf-fill { height: 100%; border-radius: 5px; }
+.sf-pts { min-width: 50px; text-align: right; font-weight: bold; }
+
+/* PROFIT */
+.profit-pill { border-radius: 8px; padding: 12px; text-align: center; margin-top: 10px; border: 1px solid; }
+.pp-green { background: #ecfdf5; border-color: #a7f3d0; color: #0ea575; }
+.pp-yellow { background: #fffbeb; border-color: #fde68a; color: #f59e0b; }
+.pp-red { background: #fef2f2; border-color: #fecaca; color: #ef4444; }
+.pp-amt { font-size: 24px; font-weight: 900; }
+.pp-lbl { font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px; }
+
+/* SEND BTN */
+.send-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; background: linear-gradient(135deg, #7c3aed, #3b82f6); color: white; }
+.send-btn:disabled { background: #ddd; color: #aaa; cursor: not-allowed; }
+
+/* TOAST */
+#toast { position: fixed; bottom: 24px; right: 24px; background: #1a1f2e; color: white; padding: 12px 18px; border-radius: 8px; font-size: 13px; display: none; z-index: 9999; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-page">
+  <div class="login-box">
+    <h1>⚖ Client Case Hub</h1>
+    <p>Admin access only</p>
+    <input type="text" id="lu" placeholder="Username" autocomplete="off">
+    <input type="password" id="lp" placeholder="Password">
+    <button onclick="doLogin()">Sign In</button>
+    <div id="login-err">Wrong username or password</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-page">
+  <div id="topbar">
+    <h1>⚖ Client Case Hub</h1>
+    <button onclick="showAdd()">+ New Client</button>
+    <button onclick="showAiUpload()" style="background:linear-gradient(135deg,#6366f1,#0ea575)">✦ From File (AI)</button>
+    <button onclick="showSettings()" class="logout-btn">⚙️ Settings</button>
+    <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+  </div>
+  <div id="main">
+
+    <!-- DASHBOARD -->
+    <div id="dash-view">
+      <div class="stats" id="stats-row"></div>
+      <div class="toolbar">
+        <input type="text" id="search-box" placeholder="Search name, phone, resort..." oninput="renderTable()">
+        <select id="f-status" onchange="renderTable()">
+          <option value="">All Statuses</option>
+          <option>New</option><option>In Progress</option>
+          <option>Submitted</option><option>Completed</option>
+        </select>
+        <select id="f-agent" onchange="renderTable()">
+          <option value="">All Agents</option>
+          <option>Sarah Mitchell</option>
+          <option>Derek Owens</option>
+          <option>Angela Torres</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Client</th><th>Resort</th><th>Status</th>
+            <th>Attorney</th><th>Score</th><th>Docs</th><th>Deal</th>
+          </tr></thead>
+          <tbody id="client-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div id="profile-view" style="display:none">
+      <button class="back-btn" onclick="showDash()">← Back to Dashboard</button>
+      <div class="profile-grid">
+        <div id="prof-left"></div>
+        <div id="prof-right"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS VIEW -->
+    <div id="settings-view" style="display:none;max-width:700px">
+      <button class="back-btn" onclick="showDash()">← Back to Dashboard</button>
+      <h2 style="font-size:20px;font-weight:bold;margin-bottom:20px">⚙️ Settings</h2>
+
+      <!-- API KEY -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-head">🔑 Google Gemini API Key — FREE (needed for AI document extraction)</div>
+        <div class="card-body">
+          <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:6px;padding:10px 14px;font-size:13px;color:#065f46;margin-bottom:14px">
+            ✅ <strong>Completely free — no credit card needed.</strong> Get your key in 2 minutes.
+          </div>
+          <div style="font-size:13px;color:#555;margin-bottom:14px">
+            Paste your Gemini API key below. It stays in this browser tab only.
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <input type="password" id="api-key-input" placeholder="AIzaSy..." style="flex:1;padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-family:monospace;font-size:13px">
+            <button class="btn btn-green" onclick="saveKey()">Save Key</button>
+            <button class="btn btn-gray" onclick="toggleKey()">👁 Show</button>
+          </div>
+          <div id="key-status" style="font-size:13px;color:#888">⚪ No key saved — AI extraction disabled</div>
+          <div style="margin-top:16px;padding-top:14px;border-top:1px solid #eee">
+            <div style="font-size:12px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">How to get your free Gemini key:</div>
+            <div style="font-size:13px;color:#555;line-height:2">
+              1. Go to <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#0ea575;font-weight:bold">aistudio.google.com/apikey ↗</a><br>
+              2. Sign in with any Gmail / Google account<br>
+              3. Click <strong>Create API Key</strong><br>
+              4. Copy the key (starts with AIza...)<br>
+              5. Paste it above and click <strong>Save Key</strong>
+            </div>
+            <div style="margin-top:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:10px 14px;font-size:13px;color:#1e40af">
+              💡 Free tier = 1,500 document extractions per day. More than enough for any team.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHANGE PASSWORD -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-head">🔒 Change Admin Password</div>
+        <div class="card-body">
+          <div class="grid2">
+            <div class="fg"><label>Current Password</label><input type="password" id="pw-cur" placeholder="••••••••"></div>
+            <div class="fg"><label>New Password</label><input type="password" id="pw-new" placeholder="••••••••"></div>
+          </div>
+          <div class="fg"><label>Confirm New Password</label><input type="password" id="pw-con" placeholder="••••••••"></div>
+          <div id="pw-err" style="font-size:13px;color:#ef4444;margin-bottom:8px;display:none"></div>
+          <button class="btn btn-green" onclick="changePw()">Update Password</button>
+        </div>
+      </div>
+
+      <!-- DEPLOY -->
+      <div class="card">
+        <div class="card-head">🚀 Share with Your Team — Free Hosting Options</div>
+        <div class="card-body">
+          <p style="font-size:13px;color:#555;margin-bottom:16px">Host this file online so your whole team can access it from any device with a link.</p>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;gap:12px;padding-bottom:14px;border-bottom:1px solid #eee">
+              <div style="width:28px;height:28px;background:#0ea575;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;flex-shrink:0">1</div>
+              <div><strong style="font-size:14px">Netlify Drop — easiest (30 seconds)</strong><br>
+              <span style="font-size:13px;color:#555">Go to <a href="https://app.netlify.com/drop" target="_blank" style="color:#0ea575;font-weight:bold">app.netlify.com/drop ↗</a> and drag this file onto the page. You get a live URL instantly. Free forever.</span></div>
+            </div>
+            <div style="display:flex;gap:12px;padding-bottom:14px;border-bottom:1px solid #eee">
+              <div style="width:28px;height:28px;background:#3b82f6;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;flex-shrink:0">2</div>
+              <div><strong style="font-size:14px">GitHub Pages — permanent link</strong><br>
+              <span style="font-size:13px;color:#555">Create a free GitHub account → New repo → upload file → Settings → Pages → Done. URL: <code style="background:#f0f0f0;padding:1px 5px;border-radius:3px">username.github.io/repo</code></span></div>
+            </div>
+            <div style="display:flex;gap:12px">
+              <div style="width:28px;height:28px;background:#8b5cf6;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;flex-shrink:0">3</div>
+              <div><strong style="font-size:14px">Vercel — fastest, auto HTTPS</strong><br>
+              <span style="font-size:13px;color:#555">Go to <a href="https://vercel.com" target="_blank" style="color:#0ea575;font-weight:bold">vercel.com ↗</a> → New Project → drag file → done in under a minute.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end #main -->
+</div><!-- end #app-page -->
+
+<!-- AI UPLOAD MODAL -->
+<div class="overlay" id="ai-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head">
+      <h2>✦ Create Client from Document</h2>
+      <button onclick="closeAi()">×</button>
+    </div>
+    <div class="modal-body">
+      <!-- Step: upload -->
+      <div id="ai-step-upload">
+        <div id="ai-drop" ondragover="aiOver(event)" ondragleave="aiLeave(event)" ondrop="aiDrop(event)"
+          style="border:2px dashed #ddd;border-radius:10px;padding:36px;text-align:center;cursor:pointer;background:#fafafa;margin-bottom:16px">
+          <div style="font-size:36px;margin-bottom:10px">📄</div>
+          <div style="font-size:16px;font-weight:bold;margin-bottom:6px">Drop your document here</div>
+          <div style="font-size:13px;color:#888;margin-bottom:14px">Intake forms, contracts, applications — PDF or image</div>
+          <label style="background:#0ea575;color:white;padding:9px 20px;border-radius:6px;font-weight:bold;font-size:13px;cursor:pointer">
+            Choose File
+            <input type="file" id="ai-file-input" accept=".pdf,.png,.jpg,.jpeg,.webp" style="display:none" onchange="aiFileChosen(this)">
+          </label>
+          <div style="font-size:11px;color:#aaa;margin-top:10px">Supports: PDF · PNG · JPG · WEBP</div>
+        </div>
+        <div style="background:#f5f3ff;border:1px solid #e9d5ff;border-radius:8px;padding:14px">
+          <div style="font-size:12px;font-weight:bold;color:#6366f1;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">✦ What gets extracted automatically</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:12px;color:#555">
+            <span>👤 Full name</span><span>📞 Phone</span><span>✉️ Email</span>
+            <span>🏨 Resort</span><span>📋 Ownership</span><span>💳 Mortgage</span>
+            <span>📅 Years owned</span><span>🎂 Client age</span><span>❤️ Hardship</span>
+          </div>
+        </div>
+        <div id="no-key-warn" style="display:none;margin-top:12px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:12px;font-size:13px;color:#dc2626">
+          ⚠️ <strong>No API key saved.</strong> Go to <button onclick="closeAi();showSettings()" style="background:none;border:none;color:#0ea575;font-weight:bold;cursor:pointer;font-size:13px">Settings → API Key</button> to add your free Gemini key first.
+        </div>
+      </div>
+
+      <!-- Step: processing -->
+      <div id="ai-step-proc" style="display:none;text-align:center;padding:30px">
+        <div id="ai-spinner" style="width:50px;height:50px;border:4px solid #eee;border-top-color:#6366f1;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px"></div>
+        <div style="font-size:17px;font-weight:bold;margin-bottom:6px">Reading document…</div>
+        <div style="font-size:13px;color:#888" id="ai-proc-file"></div>
+      </div>
+
+      <!-- Step: review -->
+      <div id="ai-step-review" style="display:none">
+        <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#065f46">
+          <strong>✅ Data extracted — review and confirm.</strong> All fields are editable.
+        </div>
+        <div class="grid2">
+          <div class="fg"><label>First Name *</label><input type="text" id="ai-fname"></div>
+          <div class="fg"><label>Last Name *</label><input type="text" id="ai-lname"></div>
+          <div class="fg"><label>Phone</label><input type="tel" id="ai-phone"></div>
+          <div class="fg"><label>Email</label><input type="email" id="ai-email"></div>
+          <div class="fg"><label>Resort</label><input type="text" id="ai-resort"></div>
+          <div class="fg"><label>Ownership</label>
+            <select id="ai-own"><option>Points</option><option>Deeded</option><option>Unknown</option></select></div>
+          <div class="fg"><label>Mortgage</label>
+            <select id="ai-mort"><option>Paid Off</option><option>Has Mortgage</option><option>Unknown</option></select></div>
+          <div class="fg"><label>Deal Amount ($)</label><input type="number" id="ai-deal"></div>
+          <div class="fg"><label>Years Owned</label><input type="number" id="ai-yrs"></div>
+          <div class="fg"><label>Client Age</label><input type="number" id="ai-age"></div>
+        </div>
+        <div class="fg"><label>Notes from document</label><textarea id="ai-notes" style="min-height:60px"></textarea></div>
+        <div id="ai-doc-type" style="background:#f8f9fb;border:1px solid #eee;border-radius:6px;padding:10px 14px;font-size:13px;color:#555"></div>
+      </div>
+
+      <!-- Step: error -->
+      <div id="ai-step-err" style="display:none;text-align:center;padding:30px">
+        <div style="font-size:36px;margin-bottom:12px">⚠️</div>
+        <div style="font-size:16px;font-weight:bold;margin-bottom:8px">Extraction failed</div>
+        <div id="ai-err-msg" style="font-size:13px;color:#888;max-width:340px;margin:0 auto;line-height:1.6"></div>
+        <button class="btn btn-gray" style="margin-top:16px" onclick="aiReset()">Try Again</button>
+      </div>
+    </div>
+    <div class="modal-foot" id="ai-footer">
+      <button class="btn btn-gray" onclick="closeAi()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes spin { to { transform:rotate(360deg); } }
+#ai-drop.over { border-color:#6366f1; background:#f5f3ff; }
+</style>
+
+<!-- ADD CLIENT MODAL -->
+<div class="overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>New Client</h2>
+      <button onclick="closeAdd()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid2">
+        <div class="fg"><label>First Name *</label><input type="text" id="n-fname"></div>
+        <div class="fg"><label>Last Name *</label><input type="text" id="n-lname"></div>
+        <div class="fg"><label>Phone</label><input type="tel" id="n-phone"></div>
+        <div class="fg"><label>Email</label><input type="email" id="n-email"></div>
+        <div class="fg"><label>Resort</label><input type="text" id="n-resort"></div>
+        <div class="fg"><label>Ownership</label>
+          <select id="n-own"><option>Points</option><option>Deeded</option></select></div>
+        <div class="fg"><label>Mortgage</label>
+          <select id="n-mort"><option>Paid Off</option><option>Has Mortgage</option><option>Unknown</option></select></div>
+        <div class="fg"><label>Assigned Agent</label>
+          <select id="n-agent">
+            <option>Sarah Mitchell</option>
+            <option>Derek Owens</option>
+            <option>Angela Torres</option>
+          </select></div>
+        <div class="fg"><label>Deal Amount ($)</label><input type="number" id="n-deal"></div>
+        <div class="fg"><label>Payment</label>
+          <select id="n-pay"><option value="cash">Cash</option><option value="card">Card</option></select></div>
+        <div class="fg"><label>Years Owned</label><input type="number" id="n-yrs"></div>
+        <div class="fg"><label>Client Age</label><input type="number" id="n-age"></div>
+      </div>
+      <div class="fg"><label>Notes</label><textarea id="n-notes"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-gray" onclick="closeAdd()">Cancel</button>
+      <button class="btn btn-green" onclick="saveClient()">Create Client</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────
+var clients = [
+  { id:1, fname:'Robert', lname:'Martinez', phone:'(407) 555-0182', email:'rm@email.com',
+    resort:'Marriott Vacation Club', ownership:'Points', mortgage:'Has Mortgage',
+    status:'In Progress', agent:'Sarah Mitchell', attorney:'Lawyer 1',
+    deal:5800, payment:'cash', yearsOwned:12, clientAge:68, hardship:['medical','financial'],
+    docs:{intake:'Intake_RM.pdf',auth:'Auth_RM.pdf',contract:'',maintenance:'MFee_RM.pdf',medical:'',financial:'',additional:''},
+    notes:[{text:'Client eager to exit.',user:'Sarah Mitchell',time:'2025-03-10 09:20'}],
+    timeline:[
+      {type:'upload',text:'Uploaded Intake_RM.pdf',user:'Sarah Mitchell',time:'2025-03-10 09:14'},
+      {type:'status',text:'Status → In Progress',user:'Sarah Mitchell',time:'2025-03-11 10:00'},
+      {type:'attorney',text:'Attorney: Lawyer 1',user:'Admin',time:'2025-03-12 14:30'}
+    ], wfStep:2, created:'2025-03-10' },
+  { id:2, fname:'Linda', lname:'Chen', phone:'(305) 555-0247', email:'lc@email.com',
+    resort:'Wyndham Destinations', ownership:'Points', mortgage:'Paid Off',
+    status:'Submitted', agent:'Sarah Mitchell', attorney:'Lawyer 2',
+    deal:3200, payment:'card', yearsOwned:6, clientAge:54, hardship:['financial'],
+    docs:{intake:'Intake_LC.pdf',auth:'Auth_LC.pdf',contract:'Contract_LC.pdf',maintenance:'MFee_LC.pdf',medical:'',financial:'Hardship_LC.pdf',additional:''},
+    notes:[], timeline:[{type:'status',text:'Status → Submitted',user:'Sarah',time:'2025-02-28 15:30'}],
+    wfStep:3, created:'2025-02-18' },
+  { id:3, fname:'James', lname:'Thompson', phone:'(813) 555-0391', email:'jt@email.com',
+    resort:'Hilton Grand Vacations', ownership:'Deeded', mortgage:'Paid Off',
+    status:'New', agent:'Derek Owens', attorney:'',
+    deal:1200, payment:'cash', yearsOwned:3, clientAge:42, hardship:[],
+    docs:{intake:'',auth:'',contract:'',maintenance:'',medical:'',financial:'',additional:''},
+    notes:[], timeline:[{type:'note',text:'File created',user:'Derek',time:'2025-03-14 11:00'}],
+    wfStep:0, created:'2025-03-14' },
+  { id:4, fname:'Patricia', lname:'Williams', phone:'(904) 555-0128', email:'pw@email.com',
+    resort:'Diamond Resorts', ownership:'Points', mortgage:'Has Mortgage',
+    status:'Completed', agent:'Derek Owens', attorney:'Lawyer 1',
+    deal:6500, payment:'cash', yearsOwned:15, clientAge:71, hardship:['elderly','medical'],
+    docs:{intake:'Intake_PW.pdf',auth:'Auth_PW.pdf',contract:'Contract_PW.pdf',maintenance:'MFee_PW.pdf',medical:'',financial:'',additional:''},
+    notes:[], timeline:[{type:'status',text:'Status → Completed',user:'Admin',time:'2025-01-20 09:00'}],
+    wfStep:4, created:'2024-12-15' },
+  { id:5, fname:'Michael', lname:'Robinson', phone:'(561) 555-0445', email:'mr2@email.com',
+    resort:'Bluegreen Vacations', ownership:'Points', mortgage:'Unknown',
+    status:'In Progress', agent:'Angela Torres', attorney:'Lawyer 2',
+    deal:2100, payment:'card', yearsOwned:4, clientAge:49, hardship:[],
+    docs:{intake:'Intake_MR.pdf',auth:'',contract:'',maintenance:'',medical:'',financial:'',additional:''},
+    notes:[], timeline:[{type:'note',text:'File created',user:'Angela',time:'2025-02-25 13:00'}],
+    wfStep:1, created:'2025-02-25' }
+];
+
+var RDOCS = ['intake','auth','contract','maintenance'];
+var RDOC_NAMES = { intake:'Client Intake Form', auth:'Agent Authorization Form', contract:'Contract Agreement', maintenance:'Maintenance Fee Bill', medical:'Medical Hardship', financial:'Financial Hardship', additional:'Additional Documents' };
+var RDOC_REQ = { intake:true, auth:true, contract:true, maintenance:true, medical:false, financial:false, additional:false };
+var WF_STEPS = ['Intake','Docs Collected','Assigned to Attorney','Submitted','Resolution'];
+var currentClient = null;
+
+// ── LOGIN ──────────────────────────────────────
+function doLogin() {
+  var u = document.getElementById('lu').value.trim().toLowerCase();
+  var p = document.getElementById('lp').value;
+  if (u === 'admin' && p === 'admin123') {
+    document.getElementById('login-page').style.display = 'none';
+    document.getElementById('app-page').style.display = 'block';
+    renderStats();
+    renderTable();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+    document.getElementById('lp').value = '';
+  }
+}
+document.getElementById('lu').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('lp').focus(); });
+document.getElementById('lp').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+
+function doLogout() {
+  document.getElementById('app-page').style.display = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('lu').value = '';
+  document.getElementById('lp').value = '';
+}
+
+// ── SCORE ──────────────────────────────────────
+function getScore(c) {
+  var req = RDOCS.filter(function(d){ return c.docs[d]; }).length;
+  var docPts = Math.round(req/4*22) + (c.docs.medical?5:0) + (c.docs.financial?3:0);
+  docPts = Math.min(30, docPts);
+  var hv = {medical:10,financial:8,elderly:4,disability:5,deceased:6};
+  var hp = (c.hardship||[]).reduce(function(s,h){ return s+(hv[h]||0); },0);
+  hp = Math.min(25, hp);
+  var net = c.payment==='card' ? c.deal*0.8-1400 : c.deal-1400;
+  var fp = net>4000?25:net>2500?20:net>1500?15:net>500?8:2;
+  if(c.payment==='cash') fp = Math.min(25,fp+2);
+  var yp = (c.yearsOwned||0)>10?8:(c.yearsOwned||0)>5?5:(c.yearsOwned||0)>2?3:1;
+  var ap = (c.clientAge||0)>65?5:(c.clientAge||0)>55?3:1;
+  var op = c.ownership==='Deeded'?4:2;
+  var mp = c.mortgage==='Has Mortgage'?3:c.mortgage==='Paid Off'?2:0;
+  var sp = Math.min(20, yp+ap+op+mp);
+  var total = docPts+hp+fp+sp;
+  var grade = total>=90?'S':total>=78?'A':total>=62?'B':total>=45?'C':total>=28?'D':'F';
+  return {total:total, grade:grade, doc:docPts, hard:hp, fin:fp, str:sp};
+}
+
+function gradeColor(g) {
+  return {S:'#7c3aed',A:'#0ea575',B:'#3b82f6',C:'#f59e0b',D:'#f97316',F:'#ef4444'}[g]||'#aaa';
+}
+
+function docPct(c) {
+  return Math.round(RDOCS.filter(function(d){return c.docs[d];}).length/4*100);
+}
+
+function getMissing(c) {
+  return RDOCS.filter(function(d){return !c.docs[d];}).map(function(d){return RDOC_NAMES[d];});
+}
+
+function statusBadge(s) {
+  var cls = {New:'b-new','In Progress':'b-progress',Submitted:'b-submitted',Completed:'b-completed'}[s]||'b-new';
+  return '<span class="badge '+cls+'">'+s+'</span>';
+}
+
+// ── STATS ──────────────────────────────────────
+function renderStats() {
+  var el = document.getElementById('stats-row');
+  var total = clients.length;
+  var prog = clients.filter(function(c){return c.status==='In Progress';}).length;
+  var sub = clients.filter(function(c){return c.status==='Submitted';}).length;
+  var done = clients.filter(function(c){return c.status==='Completed';}).length;
+  var miss = clients.filter(function(c){return getMissing(c).length>0;}).length;
+  el.innerHTML =
+    box(total,'Total Clients','#1a1f2e') +
+    box(prog,'In Progress','#f59e0b') +
+    box(sub,'Submitted','#8b5cf6') +
+    box(done,'Completed','#0ea575') +
+    box(miss,'Missing Docs','#ef4444');
+}
+function box(n,l,c){ return '<div class="stat-box"><div class="num" style="color:'+c+'">'+n+'</div><div class="lbl">'+l+'</div></div>'; }
+
+// ── TABLE ──────────────────────────────────────
+function renderTable() {
+  var q = (document.getElementById('search-box').value||'').toLowerCase();
+  var fs = document.getElementById('f-status').value;
+  var fa = document.getElementById('f-agent').value;
+  var list = clients.filter(function(c){
+    if(fs && c.status!==fs) return false;
+    if(fa && c.agent!==fa) return false;
+    if(q && !(c.fname+' '+c.lname+' '+c.phone+' '+c.resort).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  var tb = document.getElementById('client-tbody');
+  if(!list.length){ tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:#aaa">No clients found</td></tr>'; return; }
+  tb.innerHTML = list.map(function(c){
+    var sc = getScore(c);
+    var pct = docPct(c);
+    var pcolor = pct===100?'#0ea575':pct>=50?'#f59e0b':'#ef4444';
+    var net = c.payment==='card'?c.deal*0.8-1400:c.deal-1400;
+    return '<tr onclick="openProfile('+c.id+')">'+
+      '<td><strong>'+c.fname+' '+c.lname+'</strong><br><span style="font-size:12px;color:#888">'+c.agent+'</span></td>'+
+      '<td style="font-size:13px">'+c.resort+'</td>'+
+      '<td>'+statusBadge(c.status)+'</td>'+
+      '<td style="font-size:13px">'+(c.attorney||'<span style="color:#aaa">—</span>')+'</td>'+
+      '<td><span class="score s-'+sc.grade+'" style="color:'+gradeColor(sc.grade)+';border-color:'+gradeColor(sc.grade)+'">'+sc.grade+'</span></td>'+
+      '<td><div style="display:flex;align-items:center;gap:6px"><div style="width:60px;height:6px;background:#eee;border-radius:3px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:'+pcolor+'"></div></div><span style="font-size:12px;color:'+pcolor+'">'+pct+'%</span></div></td>'+
+      '<td style="font-size:13px">$'+(c.deal||0).toLocaleString()+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
+// ── PROFILE ──────────────────────────────────────
+function openProfile(id) {
+  currentClient = clients.find(function(c){return c.id===id;});
+  document.getElementById('dash-view').style.display = 'none';
+  document.getElementById('profile-view').style.display = 'block';
+  renderProfile();
+}
+
+function showDash() {
+  document.getElementById('profile-view').style.display = 'none';
+  document.getElementById('dash-view').style.display = 'block';
+  renderStats();
+  renderTable();
+}
+
+function renderProfile() {
+  var c = currentClient;
+  var sc = getScore(c);
+  var color = gradeColor(sc.grade);
+  var net = c.payment==='card'?c.deal*0.8-1400:c.deal-1400;
+  var pflag = net>1500?'pp-green':net>=500?'pp-yellow':'pp-red';
+  var plbl = net>1500?'✅ Profitable':net>=500?'⚠️ Borderline':'❌ Not Worth';
+  var miss = getMissing(c);
+  var pct = docPct(c);
+  var pcolor = pct===100?'#0ea575':pct>=50?'#f59e0b':'#ef4444';
+  var canSend = miss.length===0 && c.attorney && c.status!=='Submitted' && c.status!=='Completed';
+
+  // LEFT
+  document.getElementById('prof-left').innerHTML =
+    // Info card
+    '<div class="card"><div class="card-head">Client Info</div><div class="card-body">'+
+    row('Name', '<strong>'+c.fname+' '+c.lname+'</strong>')+
+    row('Phone', c.phone)+row('Email', c.email)+
+    row('Resort', c.resort)+row('Ownership', c.ownership)+
+    row('Mortgage', c.mortgage)+row('Agent', c.agent)+
+    row('Created', c.created)+
+    '</div></div>'+
+
+    // Case management card
+    '<div class="card"><div class="card-head">Case Management</div><div class="card-body">'+
+    '<div class="fg"><label>Status</label>'+
+    '<select onchange="updateField(\'status\',this.value)">'+
+    ['New','In Progress','Submitted','Completed'].map(function(s){
+      return '<option'+(c.status===s?' selected':'')+'>'+s+'</option>';
+    }).join('')+'</select></div>'+
+    '<div class="fg"><label>Assigned Attorney</label>'+
+    '<select onchange="updateField(\'attorney\',this.value)">'+
+    '<option value=""'+(c.attorney===''?' selected':'')+'>— None —</option>'+
+    ['Lawyer 1','Lawyer 2'].map(function(a){
+      return '<option'+(c.attorney===a?' selected':'')+'>'+a+'</option>';
+    }).join('')+'</select></div>'+
+    '<button class="send-btn" onclick="sendToAttorney()" '+(canSend?'':'disabled')+'>'+
+    (canSend?'⚖️ Send to '+c.attorney:(miss.length?'❌ '+miss.length+' docs missing':'⚖️ Assign attorney first'))+
+    '</button></div></div>'+
+
+    // Score card
+    '<div class="score-card">'+
+    '<div class="score-top">'+
+    '<div class="score-ring-big" style="color:'+color+';border-color:'+color+'">'+sc.total+'</div>'+
+    '<div><div class="score-grade" style="color:'+color+'">'+sc.grade+' Grade</div>'+
+    '<div style="font-size:13px;color:#555">'+scoreDesc(sc.grade)+'</div></div></div>'+
+    sfRow('📋 Documents', sc.doc, 30)+
+    sfRow('❤️ Hardship', sc.hard, 25)+
+    sfRow('💰 Financial', sc.fin, 25)+
+    sfRow('⚖️ Strength', sc.str, 20)+
+    '</div>'+
+
+    // Financial card
+    '<div class="card"><div class="card-head">Financial</div><div class="card-body">'+
+    row('Deal Amount','$'+(c.deal||0).toLocaleString())+
+    row('Payment', c.payment==='card'?'Card':'Cash')+
+    (c.payment==='card'?row('Card Fee (20%)','−$'+Math.round(c.deal*0.2).toLocaleString()):'')+
+    row('Lawyer Fee','−$1,400')+
+    '<div class="profit-pill '+pflag+'">'+
+    '<div class="pp-lbl">'+plbl+'</div>'+
+    '<div class="pp-amt">$'+Math.round(net).toLocaleString()+'</div>'+
+    '<div style="font-size:11px">Net Revenue</div>'+
+    '</div></div></div>'+
+
+    // Timeline
+    '<div class="card"><div class="card-head">Activity Timeline</div><div class="card-body">'+
+    '<div class="tl">'+c.timeline.map(function(t){
+      return '<div class="tl-item"><div class="tl-dot '+t.type+'"></div>'+
+        '<div class="tl-text">'+t.text+'</div>'+
+        '<div class="tl-meta">'+t.user+' · '+t.time+'</div></div>';
+    }).join('')+'</div></div></div>';
+
+  // RIGHT
+  // Workflow
+  var wfHtml = '<div class="card"><div class="card-head">Case Workflow</div><div class="card-body">'+
+    '<div class="wf">'+WF_STEPS.map(function(s,i){
+      var cls = i<c.wfStep?'done':i===c.wfStep?'active':'';
+      return '<div class="wf-step '+cls+'" onclick="setWf('+i+')">'+
+        '<div class="wf-top"><div class="wf-dot">'+(i<c.wfStep?'✓':i+1)+'</div><div class="wf-line"></div></div>'+
+        '<div class="wf-lbl">'+s+'</div></div>';
+    }).join('')+'</div></div></div>';
+
+  // Doc progress
+  var progHtml = '<div class="prog-wrap">'+
+    '<div class="prog-top"><span style="font-size:13px;font-weight:bold">Case Completion</span><span class="prog-pct" style="color:'+pcolor+'">'+pct+'%</span></div>'+
+    '<div class="prog-track"><div class="prog-fill" style="width:'+pct+'%;background:'+pcolor+'"></div></div>'+
+    '<div style="font-size:12px;color:#888;margin-top:5px">'+(pct===100?'✅ All required docs uploaded':'❌ '+miss.length+' required doc'+(miss.length>1?'s':'')+' missing')+'</div>'+
+    '</div>';
+
+  // Doc slots
+  var docsHtml = Object.keys(RDOC_NAMES).map(function(d){
+    var has = !!c.docs[d];
+    var req = RDOC_REQ[d];
+    return '<div class="doc-slot">'+
+      '<div class="doc-slot-head" onclick="toggleSlot(\'s-'+d+'\')">'+
+      '<div><span class="doc-name">'+RDOC_NAMES[d]+'</span>'+
+      (req?'<span class="doc-req">Required</span>':'<span class="doc-opt">Optional</span>')+'</div>'+
+      '<span class="doc-status">'+(has?'✅':'❌')+'</span></div>'+
+      '<div class="doc-slot-body" id="s-'+d+'">'+
+      (has?
+        '<div class="doc-file">📄 <span>'+c.docs[d]+'</span>'+
+        '<button onclick="removeDoc(\''+d+'\')" style="margin-left:auto;background:#fef2f2;color:#ef4444;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:11px">Remove</button></div>'
+        :
+        '<div class="doc-empty">Not uploaded yet<br>'+
+        '<label class="upload-lbl">Upload File<input type="file" style="display:none" onchange="uploadDoc(\''+d+'\',this)"></label></div>'
+      )+'</div></div>';
+  }).join('');
+
+  // Notes
+  var notesHtml = '<div class="card" style="margin-top:16px"><div class="card-head" style="display:flex;justify-content:space-between;align-items:center">'+
+    '<span>Notes</span><button class="btn btn-green" style="font-size:11px;padding:4px 10px" onclick="addNote()">+ Add</button></div>'+
+    '<div class="card-body">'+
+    (c.notes.length?c.notes.map(function(n){
+      return '<div style="padding:8px 0;border-bottom:1px solid #f5f5f5"><div style="font-size:13px">'+n.text+'</div>'+
+        '<div style="font-size:11px;color:#aaa;font-family:monospace;margin-top:3px">'+n.user+' · '+n.time+'</div></div>';
+    }).join(''):'<div style="font-size:13px;color:#aaa">No notes yet</div>')+
+    '</div></div>';
+
+  document.getElementById('prof-right').innerHTML = wfHtml + progHtml + docsHtml + notesHtml;
+}
+
+function row(l,v){ return '<div class="info-row"><span class="info-lbl">'+l+'</span><span class="info-val">'+v+'</span></div>'; }
+function scoreDesc(g){ return {S:'Exceptional — send immediately',A:'Strong — high priority',B:'Good — schedule soon',C:'Average — needs work',D:'Weak — address gaps',F:'Not ready'}[g]||''; }
+function sfRow(l,pts,max){
+  var pct=Math.round(pts/max*100);
+  var c=pct>=80?'#0ea575':pct>=50?'#3b82f6':pct>=30?'#f59e0b':'#ef4444';
+  return '<div class="score-factor"><span class="sf-lbl">'+l+'</span>'+
+    '<div class="sf-bar"><div class="sf-fill" style="width:'+pct+'%;background:'+c+'"></div></div>'+
+    '<span class="sf-pts" style="color:'+c+'">'+pts+'/'+max+'</span></div>';
+}
+
+// ── ACTIONS ──────────────────────────────────────
+function updateField(field, val) {
+  currentClient[field] = val;
+  currentClient.timeline.unshift({type:'status',text:field+' → '+val,user:'Admin',time:now()});
+  if(field==='attorney' && val && currentClient.wfStep<2) currentClient.wfStep=2;
+  renderProfile();
+}
+
+function setWf(i) {
+  currentClient.wfStep = i;
+  var sm = {0:'New',1:'In Progress',2:'In Progress',3:'Submitted',4:'Completed'};
+  currentClient.status = sm[i];
+  currentClient.timeline.unshift({type:'status',text:'Workflow → '+WF_STEPS[i],user:'Admin',time:now()});
+  renderProfile();
+  toast('Workflow → '+WF_STEPS[i]);
+}
+
+function sendToAttorney() {
+  var c = currentClient;
+  c.status = 'Submitted'; c.wfStep = 3;
+  c.timeline.unshift({type:'attorney',text:'Sent to '+c.attorney,user:'Admin',time:now()});
+  renderProfile();
+  toast('Sent to '+c.attorney);
+}
+
+function toggleSlot(id) {
+  var el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+
+function uploadDoc(docId, input) {
+  if(!input.files.length) return;
+  var f = input.files[0];
+  currentClient.docs[docId] = f.name;
+  currentClient.timeline.unshift({type:'upload',text:'Uploaded '+f.name,user:'Admin',time:now()});
+  var miss = getMissing(currentClient);
+  if(miss.length===0 && currentClient.wfStep<1){
+    currentClient.wfStep=1;
+    currentClient.timeline.unshift({type:'status',text:'All required docs collected',user:'System',time:now()});
+  }
+  renderProfile();
+  toast('Uploaded: '+f.name);
+}
+
+function removeDoc(docId) {
+  var name = currentClient.docs[docId];
+  currentClient.docs[docId] = '';
+  currentClient.timeline.unshift({type:'upload',text:'Removed: '+name,user:'Admin',time:now()});
+  renderProfile();
+  toast('Removed: '+name);
+}
+
+function addNote() {
+  var txt = prompt('Enter note:');
+  if(!txt || !txt.trim()) return;
+  currentClient.notes.unshift({text:txt.trim(),user:'Admin',time:now()});
+  currentClient.timeline.unshift({type:'note',text:'Note: '+txt.trim(),user:'Admin',time:now()});
+  renderProfile();
+  toast('Note saved');
+}
+
+// ── ADD CLIENT ──────────────────────────────────────
+function showAdd() {
+  document.getElementById('add-modal').classList.add('open');
+  document.getElementById('n-fname').focus();
+}
+function closeAdd() {
+  document.getElementById('add-modal').classList.remove('open');
+}
+function saveClient() {
+  var fname = document.getElementById('n-fname').value.trim();
+  var lname = document.getElementById('n-lname').value.trim();
+  if(!fname||!lname){ alert('First and last name are required'); return; }
+  var newId = Math.max.apply(null, clients.map(function(c){return c.id;}))+1;
+  var nc = {
+    id:newId, fname:fname, lname:lname,
+    phone:document.getElementById('n-phone').value,
+    email:document.getElementById('n-email').value,
+    resort:document.getElementById('n-resort').value||'Unknown',
+    ownership:document.getElementById('n-own').value,
+    mortgage:document.getElementById('n-mort').value,
+    status:'New', agent:document.getElementById('n-agent').value, attorney:'',
+    deal:parseFloat(document.getElementById('n-deal').value)||0,
+    payment:document.getElementById('n-pay').value,
+    yearsOwned:parseInt(document.getElementById('n-yrs').value)||0,
+    clientAge:parseInt(document.getElementById('n-age').value)||0,
+    hardship:[],
+    docs:{intake:'',auth:'',contract:'',maintenance:'',medical:'',financial:'',additional:''},
+    notes:[], timeline:[{type:'note',text:'Client file created',user:'Admin',time:now()}],
+    wfStep:0, created:today()
+  };
+  var note = document.getElementById('n-notes').value.trim();
+  if(note) nc.notes.push({text:note,user:'Admin',time:now()});
+  clients.unshift(nc);
+  closeAdd();
+  renderStats();
+  renderTable();
+  // Clear form
+  ['n-fname','n-lname','n-phone','n-email','n-resort','n-deal','n-yrs','n-age','n-notes'].forEach(function(id){
+    document.getElementById(id).value='';
+  });
+  toast('Client created: '+fname+' '+lname);
+}
+
+// ── VIEW NAVIGATION ──────────────────────────────────────
+function showDash() {
+  document.getElementById('profile-view').style.display = 'none';
+  document.getElementById('settings-view').style.display = 'none';
+  document.getElementById('dash-view').style.display = 'block';
+  renderStats(); renderTable();
+}
+function showSettings() {
+  document.getElementById('dash-view').style.display = 'none';
+  document.getElementById('profile-view').style.display = 'none';
+  document.getElementById('settings-view').style.display = 'block';
+  updateKeyStatus();
+}
+
+// ── API KEY ──────────────────────────────────────
+var _apiKey = '';
+function getKey() { return _apiKey; }
+function saveKey() {
+  var k = document.getElementById('api-key-input').value.trim();
+  if (!k) { alert('Enter your API key first'); return; }
+  if (!k.startsWith('AIza')) { alert('Gemini keys start with AIza... — check you copied the right thing'); return; }
+  _apiKey = k;
+  updateKeyStatus();
+  toast('✅ Gemini key saved — AI extraction ready!');
+}
+function toggleKey() {
+  var el = document.getElementById('api-key-input');
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+function updateKeyStatus() {
+  var el = document.getElementById('key-status');
+  if (!el) return;
+  if (_apiKey) {
+    el.textContent = '✅ Key active: ' + _apiKey.slice(0,14) + '... — AI extraction enabled';
+    el.style.color = '#0ea575';
+  } else {
+    el.textContent = '⚪ No key saved — AI extraction disabled';
+    el.style.color = '#888';
+  }
+}
+
+// ── CHANGE PASSWORD ──────────────────────────────────────
+var _adminPass = 'admin123';
+function changePw() {
+  var cur = document.getElementById('pw-cur').value;
+  var nw = document.getElementById('pw-new').value;
+  var con = document.getElementById('pw-con').value;
+  var err = document.getElementById('pw-err');
+  err.style.display = 'none';
+  if (cur !== _adminPass) { err.textContent = 'Current password is wrong'; err.style.display = 'block'; return; }
+  if (nw.length < 6) { err.textContent = 'New password must be at least 6 characters'; err.style.display = 'block'; return; }
+  if (nw !== con) { err.textContent = 'Passwords do not match'; err.style.display = 'block'; return; }
+  _adminPass = nw;
+  document.getElementById('pw-cur').value = '';
+  document.getElementById('pw-new').value = '';
+  document.getElementById('pw-con').value = '';
+  toast('✅ Password updated');
+}
+// Update doLogin to use dynamic password
+var _origLogin = doLogin;
+function doLogin() {
+  var u = document.getElementById('lu').value.trim().toLowerCase();
+  var p = document.getElementById('lp').value;
+  if (u === 'admin' && p === _adminPass) {
+    document.getElementById('login-page').style.display = 'none';
+    document.getElementById('app-page').style.display = 'block';
+    renderStats(); renderTable();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+    document.getElementById('lp').value = '';
+  }
+}
+
+// ── AI UPLOAD ──────────────────────────────────────
+var _aiFile = null;
+
+function showAiUpload() {
+  aiReset();
+  // Show warning if no key
+  document.getElementById('no-key-warn').style.display = _apiKey ? 'none' : 'block';
+  document.getElementById('ai-modal').classList.add('open');
+}
+function closeAi() { document.getElementById('ai-modal').classList.remove('open'); }
+
+function aiReset() {
+  _aiFile = null;
+  document.getElementById('ai-step-upload').style.display = 'block';
+  document.getElementById('ai-step-proc').style.display = 'none';
+  document.getElementById('ai-step-review').style.display = 'none';
+  document.getElementById('ai-step-err').style.display = 'none';
+  document.getElementById('ai-footer').innerHTML = '<button class="btn btn-gray" onclick="closeAi()">Cancel</button>';
+  var inp = document.getElementById('ai-file-input');
+  if (inp) inp.value = '';
+}
+
+function aiOver(e) { e.preventDefault(); document.getElementById('ai-drop').classList.add('over'); }
+function aiLeave(e) { document.getElementById('ai-drop').classList.remove('over'); }
+function aiDrop(e) {
+  e.preventDefault();
+  document.getElementById('ai-drop').classList.remove('over');
+  var f = e.dataTransfer.files[0];
+  if (f) runAiExtract(f);
+}
+function aiFileChosen(inp) { if (inp.files[0]) runAiExtract(inp.files[0]); }
+
+async function runAiExtract(file) {
+  if (!_apiKey) {
+    document.getElementById('no-key-warn').style.display = 'block';
+    return;
+  }
+  var allowed = ['application/pdf','image/png','image/jpeg','image/webp'];
+  if (!allowed.includes(file.type)) { alert('Please upload a PDF or image (PNG, JPG, WEBP)'); return; }
+  if (file.size > 20*1024*1024) { alert('File too large — max 20MB'); return; }
+
+  _aiFile = file;
+  document.getElementById('ai-step-upload').style.display = 'none';
+  document.getElementById('ai-step-proc').style.display = 'block';
+  document.getElementById('ai-proc-file').textContent = '📄 ' + file.name;
+
+  try {
+    // Read file as base64
+    var base64 = await new Promise(function(res, rej) {
+      var r = new FileReader();
+      r.onload = function(){ res(r.result.split(',')[1]); };
+      r.onerror = function(){ rej(new Error('Could not read file')); };
+      r.readAsDataURL(file);
+    });
+
+    var prompt = 'You are a data extraction assistant for a timeshare exit company. Extract all client info from this document. Return ONLY raw JSON (no markdown, no explanation) with these exact keys: fname, lname, phone (format: (XXX) XXX-XXXX), email, resort, ownership (Points/Deeded/Unknown), mortgage (Paid Off/Has Mortgage/Unknown), deal (number), payment (cash/card), yearsOwned (number), clientAge (number), hardship (array with any of: medical,financial,elderly,disability,deceased), notes (string), docType (one of: Client Intake Form, Agent Authorization Form, Contract Agreement, Maintenance Fee Bill, Medical Hardship, Financial Hardship, Additional Documents). Use empty string or 0 for missing fields. Return ONLY the JSON object.';
+
+    var resp = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + _apiKey,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [
+            { inline_data: { mime_type: file.type, data: base64 } },
+            { text: prompt }
+          ]}],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 800 }
+        })
+      }
+    );
+
+    if (!resp.ok) {
+      var e = await resp.json().catch(function(){return {};});
+      var msg = (e.error && e.error.message) || ('Error ' + resp.status);
+      if (resp.status === 400) msg = 'Bad request — make sure your API key is correct in Settings.';
+      if (resp.status === 403) msg = 'API key rejected. Double-check your key in Settings.';
+      if (resp.status === 429) msg = 'Too many requests. Wait a moment and try again.';
+      throw new Error(msg);
+    }
+
+    var data = await resp.json();
+    var raw = ((data.candidates||[])[0]||{});
+    var text = ((raw.content||{}).parts||[]).map(function(p){return p.text||'';}).join('').trim();
+    var clean = text.replace(/^```json?\s*/i,'').replace(/```\s*$/,'').trim();
+    var extracted = JSON.parse(clean);
+
+    // Fill review form
+    function sv(id,v){ var el=document.getElementById(id); if(el) el.value=v||''; }
+    sv('ai-fname',extracted.fname); sv('ai-lname',extracted.lname);
+    sv('ai-phone',extracted.phone); sv('ai-email',extracted.email);
+    sv('ai-resort',extracted.resort); sv('ai-deal',extracted.deal||'');
+    sv('ai-yrs',extracted.yearsOwned||''); sv('ai-age',extracted.clientAge||'');
+    sv('ai-notes',extracted.notes||'');
+
+    function setSel(id,v){
+      var el=document.getElementById(id);
+      if(!el) return;
+      for(var i=0;i<el.options.length;i++){
+        if(el.options[i].value===v||el.options[i].text===v){ el.selectedIndex=i; return; }
+      }
+    }
+    setSel('ai-own',extracted.ownership);
+    setSel('ai-mort',extracted.mortgage);
+
+    document.getElementById('ai-doc-type').innerHTML =
+      '📂 <strong>Document detected as:</strong> ' + (extracted.docType||'Unknown') +
+      ' &nbsp;·&nbsp; <span style="color:#888;font-size:12px">This file will be auto-filed in the correct slot</span>';
+
+    document.getElementById('ai-step-proc').style.display = 'none';
+    document.getElementById('ai-step-review').style.display = 'block';
+    document.getElementById('ai-footer').innerHTML =
+      '<button class="btn btn-gray" onclick="aiReset()">← Re-upload</button>' +
+      '<button class="btn btn-gray" onclick="closeAi()">Cancel</button>' +
+      '<button class="btn btn-green" onclick="confirmAiClient()">✦ Create Client File</button>';
+
+  } catch(err) {
+    document.getElementById('ai-step-proc').style.display = 'none';
+    document.getElementById('ai-step-err').style.display = 'block';
+    document.getElementById('ai-err-msg').textContent = err.message || 'An unexpected error occurred.';
+    document.getElementById('ai-footer').innerHTML =
+      '<button class="btn btn-gray" onclick="aiReset()">← Try Again</button>' +
+      '<button class="btn btn-gray" onclick="closeAi()">Cancel</button>';
+  }
+}
+
+function confirmAiClient() {
+  var fname = document.getElementById('ai-fname').value.trim();
+  var lname = document.getElementById('ai-lname').value.trim();
+  if (!fname||!lname) { alert('First and last name are required'); return; }
+
+  var docTypeMap = {
+    'Client Intake Form':'intake','Agent Authorization Form':'auth',
+    'Contract Agreement':'contract','Maintenance Fee Bill':'maintenance',
+    'Medical Hardship':'medical','Financial Hardship':'financial','Additional Documents':'additional'
+  };
+  var detectedType = (document.getElementById('ai-doc-type').textContent||'').replace('📂 Document detected as:','').split('·')[0].trim();
+  var docs = {intake:'',auth:'',contract:'',maintenance:'',medical:'',financial:'',additional:''};
+  var slot = docTypeMap[detectedType];
+  if (slot && _aiFile) docs[slot] = _aiFile.name;
+
+  var newId = Math.max.apply(null, clients.map(function(c){return c.id;}))+1;
+  var nc = {
+    id:newId, fname:fname, lname:lname,
+    phone:document.getElementById('ai-phone').value,
+    email:document.getElementById('ai-email').value,
+    resort:document.getElementById('ai-resort').value||'Unknown',
+    ownership:document.getElementById('ai-own').value,
+    mortgage:document.getElementById('ai-mort').value,
+    status:'New', agent:'Sarah Mitchell', attorney:'',
+    deal:parseFloat(document.getElementById('ai-deal').value)||0,
+    payment:'cash',
+    yearsOwned:parseInt(document.getElementById('ai-yrs').value)||0,
+    clientAge:parseInt(document.getElementById('ai-age').value)||0,
+    hardship:[], docs:docs,
+    notes:[], wfStep:0, created:today(),
+    timeline:[
+      {type:'upload',text:'File created from document: '+(_aiFile?_aiFile.name:''),user:'AI',time:now()},
+      slot?{type:'upload',text:'Auto-filed as '+detectedType,user:'AI',time:now()}:null
+    ].filter(Boolean)
+  };
+  var note = document.getElementById('ai-notes').value.trim();
+  if(note) nc.notes.push({text:'[From document] '+note,user:'AI',time:now()});
+
+  clients.unshift(nc);
+  closeAi();
+  renderStats();
+  renderTable();
+  toast('✦ Client created: '+fname+' '+lname);
+  setTimeout(function(){ openProfile(nc.id); }, 300);
+}
+function today(){ return new Date().toISOString().split('T')[0]; }
+function now(){ var d=new Date(); return d.toISOString().split('T')[0]+' '+d.toTimeString().slice(0,5); }
+function toast(msg){
+  var el=document.getElementById('toast');
+  el.textContent=msg; el.style.display='block';
+  setTimeout(function(){ el.style.display='none'; },2500);
+}
+</script>
+</body>
+</html>
